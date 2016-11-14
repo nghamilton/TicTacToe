@@ -1,0 +1,28 @@
+tictactoe gameboard - tree of positions, defined when needed (i.e like the 'near infinite tree of chess moves')
+
+
+tictactoe gameboard - tree of positions, defined when needed (i.e like the 'near infinite tree of chess moves')
+need to be able to enforce something like (Move 1 (Move 1 Empty)) as being an invalid type
+
+b = newGame :: Board
+b = move(X 1 b)
+move(X 1 b) -- won't compile
+
+.. so the type of b must change 
+.. type must define unique states of board e.g. 
+type X_IN_BOTTOM_LEFT
+.... so something like this might help:
+data Board a b = Left a | Right b  
+
+... use kinds?
+enforce the type to be of a specific kind?
+
+
+API
+==========--------------
+move: takes a tic-tac-toe board and position and moves to that position (if not occupied) returning a new board. This function can only be called on a board that is empty or in-play. Calling move on a game board that is finished is a compile-time type error.
+
+oldB = start
+-- Calling move on a game board that is finished is a compile-time type error
+-- i.e type error if more than 5 moves played
+newB = move oldB ('X',1)
