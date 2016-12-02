@@ -63,3 +63,41 @@ quicksort (x:xs) =
     let smallerSorted = quicksort [a | a <- xs, a <= x]  
         biggerSorted = quicksort [a | a <- xs, a > x]  
     in  smallerSorted ++ [x] ++ biggerSorted  
+
+
+
+    getZipList $ (,,) <$> ZipList "dog" <*> ZipList "cat" <*> ZipList "rat"  
+
+
+
+----------------------------------------------------------------
+['x','y'] >>= \m -> [1..9] >>= \p -> return (m,p)
+[('x',1),('x',2),('x',3),('x',4),('x',5),('x',6),('x',7),('x',8),('x',9),('y',1),('y',2),('y',3),('y',4),('y',5),('y',6),('y',7),('y',8),('y',9)]
+
+--or 
+listOfTuples :: [(Int,Char)]  
+listOfTuples = do  
+    n <- [1,2]  
+    ch <- ['a','b']  
+    return (n,ch)  
+
+
+------
+moveKnight :: KnightPos -> [KnightPos]  
+moveKnight (c,r) = do  
+    (c',r') <- [(c+2,r-1),(c+2,r+1),(c-2,r-1),(c-2,r+1)  
+               ,(c+1,r-2),(c+1,r+2),(c-1,r-2),(c-1,r+2)  
+               ]  
+    guard (c' `elem` [1..8] && r' `elem` [1..8])  
+    return (c',r')  
+
+
+in3 :: KnightPos -> [KnightPos]  
+in3 start = do   
+    first <- moveKnight start  
+    second <- moveKnight first  
+    moveKnight second  
+
+--or
+
+in3 start = return start >>= moveKnight >>= moveKnight >>= moveKnight  

@@ -1,7 +1,4 @@
 tictactoe gameboard - tree of positions, defined when needed (i.e like the 'near infinite tree of chess moves')
-
-
-tictactoe gameboard - tree of positions, defined when needed (i.e like the 'near infinite tree of chess moves')
 need to be able to enforce something like (Move 1 (Move 1 Empty)) as being an invalid type
 
 b = newGame :: Board
@@ -26,3 +23,9 @@ oldB = start
 -- Calling move on a game board that is finished is a compile-time type error
 -- i.e type error if more than 5 moves played
 newB = move oldB ('X',1)
+
+
+
+Board = move Board Position
+Player|Draw = whoWon Board 
+Player|Empty = playerAt Position
