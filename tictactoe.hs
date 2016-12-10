@@ -24,11 +24,10 @@ maxsize = 3
 empty = (0,Empty)
 validMoves = [1..maxsize]
 
+{-- 
 instance Monad Board where
   return p = newBoard 
   b >>= f = undefined 
-
-{-- 
 
 move m b = b >>= (validPlay m) >>= wins 
 --doPlay takes a move and a board, gives a Unplayable or Playable
