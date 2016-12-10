@@ -1,56 +1,77 @@
-type Player = Char
-type Position = Integer
+import Data.Array
+import Control.Monad
 
-data Move = Play (Player,Position)
-  deriving (Show, Eq)
+type Move = Int
+type Magic = Int
+data Player = Empty | Player Char
+  deriving (Show,Eq)
 
-{--data Move = Unplayed
-          | Play (Player,Position)
-  deriving (Show, Eq)
-          
-data Board = Empty 
-           | Moves Move Board
-  deriving (Show, Eq)
---}
-
-class TicTacToe x where
-  move :: x -> x 
-
--- problem with this is that the typeclass implementation will require all but one of the function parameters to be supplied before it will work
--- ... therefore need to have a method that takes a move and returns a move if wnat to use typeclass methods?
---board :: Move -> Move -> Move -> Move -> Move -> Move -> Move -> Move -> Move -> String 
---board _ _ _ _ Unplayed Unplayed Unplayed Unplayed Unplayed = "Not Done" 
---board _ _ _ _ _ _ _ _ _ = "Done" 
-
-
--- a board can be either 
---  1) a function that takes a move and returns a board
---  2) a finished game 
-
-type Playable = Move -> Board
-
+type Pos = (Int,Int)
+type Play = (Magic,Player)
+type BState = Array Pos Play 
+type PosState = (Pos,Play)
 data Board = Unplayable 
-           | Playable 
+           | Playable {state :: BState}
+           -- | Finished {state :: BState}
+  deriving (Show,Eq)
 
-lastMove = (\m->Unplayable)
-validMoveX = (\m->lastMove)
+type NBoard = Board
 
-{--validMoveX = (\m->case m of 
-              (Play (_,8))->lastMove
-              (Play (_,_))->validMoveX)
-              --(Play ('Y',_))->validMoveY m)
-validMoveY = (\m->case m of 
-              (Play (_,8)) ->lastMove
-              (Play ('X',_))->validMoveX m)
+maxsize = 3
+empty = (0,Empty)
+validMoves = [1..maxsize]
+
+{--instance Monad Board where
+  return x = Playable [x]
+  Playable a >>= f = return (f a)
+  Unplayable >>= _ = Unplayable
 --}
+ 
+--given a position and a board, return a new board
+move :: Move -> NBoard -> NBoard
+--move f b = b >>= f
+move p b@(Playable a) = if (validPlay p b)
+  then Playable $ a // [((posLookup p),(magicLookup p,Player 'X'))]
+  else Unplayable 
+
+validPlay :: Move -> NBoard -> Bool
+validPlay m b@(Playable s) = (playerAt s (posLookup m))==Empty
+
+newBoard :: NBoard
+newBoard = Playable $ newState [((x,y),empty) | x<-[1..maxsize], y<-[1..maxsize]]
+
+newState :: [PosState]->BState
+newState s = array ((1,1),(maxsize,maxsize)) s 
+
+posLookup :: Move -> Pos
+posLookup i = indices (newState [])!!(i-1)
+
+magicLookup:: Move -> Magic 
+magicLookup i = [8,1,6,3,5,7,4,9,2]!!(i-1)
+
+--reduce this down
+hasWon :: BState -> Maybe Player
+hasWon s 
+  | won (plays $ Player 'X') = Just $ Player 'X'
+  | won (plays $ Player 'Y') = Just $ Player 'Y'
+  | otherwise = Nothing where
+    won = elem 15 . map sum . filterM (\x -> [True, False]) 
+    plays x = map fst $ filter (\a->x==snd a) $ elems s
+
+playerAt :: BState -> Pos -> Player
+playerAt s p  = snd $ s!p 
+
+--hasWon :: BState -> Maybe Player
+{--hasWon s = if (null winners)
+  then Nothing
+  else Just winners --Just $ head $ head winners
+  where
+    winners = filter winner plays
+    winner [(Player x),(Player x'),(Player x'')] = x==x'&&x'==x''
+    winner _ = False
+    plays = map convert winningCombos 
+    convert = map ((playerAt s).posLookup)
 
 
-newBoard = validMoveX
---------
-board0 = newBoard 
-board1 = board0 (Play ('X',1))
-board2 = board1 (Play ('X',7))
--- wont compile
---board3 = board2 (Play ('X',2))
-
---- PROBLEM: need to make Playable also of type Move -> Move -> Board
+winningCombos = [[1,2,3],[4,5,6],[7,8,9],[1,4,7],[2,5,8],[3,6,9],[1,5,9],[3,5,7]]
+--} 

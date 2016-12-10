@@ -101,3 +101,18 @@ in3 start = do
 --or
 
 in3 start = return start >>= moveKnight >>= moveKnight >>= moveKnight  
+canReachIn3 :: KnightPos -> KnightPos -> Bool  
+canReachIn3 start end = end `elem` in3 start  
+
+--- Monadic Writer
+multWithLog :: Writer [String] Int  
+multWithLog = do  
+    a <- logNumber 3  
+    b <- logNumber 5  
+    tell ["Gonna multiply these two"]  
+    return (a*b)  
+
+
+
+--Creates a superset (i.e all possible sets of 1..9)
+filterM (\x -> [True, False]) [1..9] 

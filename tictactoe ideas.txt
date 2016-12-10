@@ -15,13 +15,22 @@ data Board a b = Left a | Right b
 enforce the type to be of a specific kind?
 
 
+board variable is a function that takes a position and returns a new board (or something to process)
+move is a typeclass method that is available on all board functions
+
+.....
+
+in order to parse context-sensitive languages a Monad interface is needed
+https://wiki.haskell.org/Typeclassopedia#Instances
+.....
+
 API
 ==========--------------
 move: takes a tic-tac-toe board and position and moves to that position (if not occupied) returning a new board. This function can only be called on a board that is empty or in-play. Calling move on a game board that is finished is a compile-time type error.
 
 oldB = start
 -- Calling move on a game board that is finished is a compile-time type error
--- i.e type error if more than 5 moves played
+-- i.e type error if more than 9 moves played
 newB = move oldB ('X',1)
 
 
@@ -29,3 +38,8 @@ newB = move oldB ('X',1)
 Board = move Board Position
 Player|Draw = whoWon Board 
 Player|Empty = playerAt Position
+
+
+
+--Creates a superset (i.e all possible sets of 1..9)
+filterM (\x -> [True, False]) [1..9] 
