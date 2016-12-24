@@ -66,4 +66,15 @@ board2 = board1 (Play ('X',7))
 
 --}
 
+{--
 
+let yes = (\a->Just a+1)
+let no = (\a->Just 'n')
+
+Just 1>>=yes>>=yes>>=no
+Just 1>>=yes>>=yes>>=no>>=yes
+
+Then change the f that is applied to bind, depending on the number?
+** wont work because of the different function return type
+
+--}

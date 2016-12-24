@@ -43,3 +43,13 @@ Player|Empty = playerAt Position
 
 --Creates a superset (i.e all possible sets of 1..9)
 filterM (\x -> [True, False]) [1..9] 
+
+* create a monad for the board:
+ - a combination of the State and the AParser.hs monads
+ - the context is the starting player, and the moves played
+ - the value is the state of the board - playable or unplayable etc
+ - the board monad has one function to access a field, which has a type of Int->Board
+ - when run against a board (i.e move' b 1) the function returns a new board mobit
+ - the returned type will be either a Board Playable or Board Unplayable
+ - api exported function will be move :: (Int,Board Playable) -> Board ???
+  ..... again have the problem of type definition being too restrictive (ie cant return both Board Playable or Unplayable)

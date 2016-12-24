@@ -78,6 +78,7 @@ whoWon s
   | won (plays X) = Just X 
   | won (plays O) = Just O 
   | otherwise = Nothing where
+-- put in do notation, use an Alternative guard?
     won = elem 15 . map sum . filter (\x->3==length x) . filterM (\x -> [True, False]) 
     plays x = map fst $ filter (\a->x==snd a) $ elems s
 
