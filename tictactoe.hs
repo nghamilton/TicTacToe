@@ -24,8 +24,8 @@ data BoardS a = Unplayable
 type NBoard = BoardS Player
 
 -- wrapper to hold moves
-data NewBoard = NewBoard Player
-data Board m = M Move m
+data NB = NewBoard Player
+data B m = M Move m
 
 -- all boards
 class Board_ b where 
@@ -36,20 +36,27 @@ class Board_ b where
                      X -> O
                      O -> X
 
-instance Board_ NewBoard where
+instance Board_ NB where
   extractMoves b = [] 
   firstPlayer (NewBoard p) = p 
 
-instance Board_ b => Board_ (Board b) where
+instance Board_ b => Board_ (B b) where
   extractMoves (M m ms) = (extractMoves ms)++[m]
   firstPlayer (M m ms)  = firstPlayer ms 
 
 -- valid boards
 class Board_ b=>ValidBoard b
-instance ValidBoard NewBoard 
-instance ValidBoard (Board NewBoard) 
+instance ValidBoard NB 
+instance ValidBoard (B NB) 
+instance ValidBoard (B (B NB)) 
+instance ValidBoard (B (B (B NB))) 
+instance ValidBoard (B (B (B (B NB)))) 
+instance ValidBoard (B (B (B (B (B NB))))) 
+instance ValidBoard (B (B (B (B (B (B NB)))))) 
+instance ValidBoard (B (B (B (B (B (B (B NB))))))) 
+instance ValidBoard (B (B (B (B (B (B (B (B NB)))))))) 
  
-move :: ValidBoard b => Move -> b -> Board b
+move :: ValidBoard b => Move -> b -> B b
 move m b = M m b
 
 --Calling on a game board that is empty or in-play is a compile-time type error
@@ -173,7 +180,8 @@ winningCombos = [[1,2,3],[4,5,6],[7,8,9],[1,4,7],[2,5,8],[3,6,9],[1,5,9],[3,5,7]
 
 
 --finishedT =  move 7 $ move 5 $ move 4 $ move 2 $ move 1 NewBoard
-finishedT =   move 2 $ move 1 (NewBoard X)
+finishedT =  move 1 $ move 7 $ move 3 $ move 4 $ move 6 $ move 2 $ move 8 $ move 9 $ move 5 $ NewBoard X 
+--badT = move 10 $ move 1 $ move 7 $ move 3 $ move 4 $ move 6 $ move 2 $ move 8 $ move 9 $ move 5 $ NewBoard X 
 
 xWonBoardT =  M 7 $ M 5 $ M 4 $ M 2 $ M 1 $ NewBoard X 
 yWonBoardT =  M 7 $ M 5 $ M 4 $ M 2 $ M 1 $ M 3 $ NewBoard X 
