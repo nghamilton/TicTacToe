@@ -24,40 +24,51 @@ data BoardS a = Unplayable
 type NBoard = BoardS Player
 
 -- wrapper to hold moves
-data NB = NewBoard Player
-data B m = M Move m
+data NB s = NewBoard s Player
+data B s m = M s Move m
+
+-- board state
+class State p
+instance State P
+instance State U 
+data P = PlayableBoard
+data U = UnplayableBoard
 
 -- all boards
 class Board_ b where 
   extractMoves :: b -> [Int] 
+  extractState :: (State s) =>b -> s 
   firstPlayer:: b -> Player 
   secondPlayer:: b -> Player 
   secondPlayer b = case (firstPlayer b) of
                      X -> O
                      O -> X
 
-instance Board_ NB where
+instance (State s)=>Board_ NB s where
   extractMoves b = [] 
-  firstPlayer (NewBoard p) = p 
+  firstPlayer (NewBoard _ p) = p 
+  extractState (NewBoard s _) = PlayableBoard 
 
-instance Board_ b => Board_ (B b) where
-  extractMoves (M m ms) = (extractMoves ms)++[m]
-  firstPlayer (M m ms)  = firstPlayer ms 
+instance Board_ b => Board_ (B s b) where
+  extractMoves (M _ m ms) = (extractMoves ms)++[m]
+  firstPlayer (M _ m ms)  = firstPlayer ms 
+  extractState (M s m ms) = PlayableBoard 
 
 -- valid boards
 class Board_ b=>ValidBoard b
 instance ValidBoard NB 
-instance ValidBoard (B NB) 
-instance ValidBoard (B (B NB)) 
-instance ValidBoard (B (B (B NB))) 
-instance ValidBoard (B (B (B (B NB)))) 
-instance ValidBoard (B (B (B (B (B NB))))) 
-instance ValidBoard (B (B (B (B (B (B NB)))))) 
-instance ValidBoard (B (B (B (B (B (B (B NB))))))) 
-instance ValidBoard (B (B (B (B (B (B (B (B NB)))))))) 
+instance ValidBoard (B P NB) 
+instance ValidBoard (B P (B P NB)) 
+instance ValidBoard (B P (B P (B P NB))) 
+{--instance ValidBoard (B P (B (B (B NB)))) 
+instance ValidBoard (B P (B (B (B (B NB))))) 
+instance ValidBoard (B P (B (B (B (B (B NB)))))) 
+instance ValidBoard (B P (B (B (B (B (B (B NB))))))) 
+instance ValidBoard (B P (B (B (B (B (B (B (B NB)))))))) 
+--}
  
-move :: ValidBoard b => Move -> b -> B b
-move m b = M m b
+move :: (ValidBoard b, State s) => Move -> b -> B s b
+move m b = M (extractState b) m b
 
 --Calling on a game board that is empty or in-play is a compile-time type error
 --not in class EmptyBoard or PlayingBoard
@@ -180,9 +191,9 @@ winningCombos = [[1,2,3],[4,5,6],[7,8,9],[1,4,7],[2,5,8],[3,6,9],[1,5,9],[3,5,7]
 
 
 --finishedT =  move 7 $ move 5 $ move 4 $ move 2 $ move 1 NewBoard
-finishedT =  move 1 $ move 7 $ move 3 $ move 4 $ move 6 $ move 2 $ move 8 $ move 9 $ move 5 $ NewBoard X 
+--finishedT =  move 1 $ move 7 $ move 3 $ move 4 $ move 6 $ move 2 $ move 8 $ move 9 $ move 5 $ NewBoard X 
 --badT = move 10 $ move 1 $ move 7 $ move 3 $ move 4 $ move 6 $ move 2 $ move 8 $ move 9 $ move 5 $ NewBoard X 
 
-xWonBoardT =  M 7 $ M 5 $ M 4 $ M 2 $ M 1 $ NewBoard X 
-yWonBoardT =  M 7 $ M 5 $ M 4 $ M 2 $ M 1 $ M 3 $ NewBoard X 
-drawBoardT =  M 1 $ M 7 $ M 3 $ M 4 $ M 6 $ M 2 $ M 8 $ M 9 $ M 5 $ NewBoard X 
+--xWonBoardT =  M 7 $ M 5 $ M 4 $ M 2 $ M 1 $ NewBoard X 
+--yWonBoardT =  M 7 $ M 5 $ M 4 $ M 2 $ M 1 $ M 3 $ NewBoard X 
+--drawBoardT =  M 1 $ M 7 $ M 3 $ M 4 $ M 6 $ M 2 $ M 8 $ M 9 $ M 5 $ NewBoard X 
