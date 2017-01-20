@@ -59,29 +59,19 @@ t :: X_ a b => a -> b
 t a = undefined
 
 -- an x occupied type
-class X_ a x | a -> x where
-  getX :: a -> x
-instance X_ (X++e) X where 
-  getX _ = X
-instance (X_ x X) => X_ (E++x) X where 
-  getX _ = X
-
+class X_ a x | a -> x
+instance X_ (X++e) X
+instance (X_ x X) => X_ (E++x) X
 -- an o occupied type
 class O_ a
 instance O_ (O++e)
 instance (O_ o) => O_ (E++o)
 
--- Functional dependencies conflict between instance declarations:
-class Done a b c d e f winner | a b c d e f -> winner where
-  winner::a->b->c->d->e->f->winner
-instance Done X X X a b c X where 
-  winner _ _ _ _ _ _ = X 
-instance Done a b c X X X X where 
-  winner _ _ _ _ _ _ = X 
-instance Done O O O a b c O where 
-  winner _ _ _ _ _ _ = O 
-instance Done a b c O O O O where 
-  winner _ _ _ _ _ _ = O 
+class Done a b c d e f
+instance Done X X X a b c
+instance Done O O O a b c
+instance Done a b c O O O
+instance Done a b c X X X 
 -- instance Done a b c d e f Draw
  
 --instance (X_ m1, X_ m2, X_ m3) => Done m1 m2 m3 (a++as) (b++bs) (c++cs)
@@ -111,12 +101,12 @@ instance Done a b c O O O O where
 
 --whoWon :: Wins a b => a -> b
 --whoWon a = undefined 
---whoWon :: Done a b c d e f => (Pos a b c d e f,p) -> Bool 
-whoWon board@(Pos a b c d e f,player) = winner $ (getX a) (getX b) (getX c) (getX d) (getX e) (getX f) 
+whoWon :: Done a b c d e f => (Pos a b c d e f,p) -> Bool 
+whoWon a = True 
 
 --(Wins (Pos as bs cs ds es fs)~False)) = 
 move :: (Valid (a++as), Valid (b++bs), Valid (c++cs), Valid (d++ds), Valid (e++es), Valid (f++fs), p'<>p) => (Pos a b c d e f,p') -> (Pos as bs cs ds es fs,p) -> (Pos (a++as) (b++bs) (c++cs) (d++ds) (e++es) (f++fs),p')
-move move board@(Pos a b c d e f,p') = undefined 
+move m b = undefined 
 
 -- testing
 vm :: (Valid a) => a -> Bool
