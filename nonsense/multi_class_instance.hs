@@ -14,9 +14,6 @@
 import GHC.TypeLits
 
 
-
-type (<>) x y = (x <=? y) ~ False
-
 class Done a b c d e f
 class XOccupied a
 instance XOccupied X
@@ -28,18 +25,12 @@ data Draw = Draw
 --instance (XOccupied a, XOccupied b, XOccupied c) => Done a b c d e f
 --instance (XOccupied d, XOccupied e, XOccupied f) => Done a b c d e f
 
-data M m ms = M m ms
-
-{-- todo replace with this:
---data M m ms = M m ms
 data m ++ ms = M m ms
+type (<>) x y = (x <=? y) ~ False
 
-instance Done (X ++ ms) (X ++ ms) (X ++ ms) a b c
---}
-
-instance Done (M X ms) (M X ms) (M X ms) a b c
-instance Done a b c (M X ms) (M X ms) (M X ms)  
-instance Done (M O ms) (M O ms) (M O ms) a b c
+instance Done (X++ms) (X++ms) (X++ms) a b c
+instance Done a b c (X++ms) (X++s) (X++s)  
+instance Done (O++ms) (O++ms) (O++ms) a b c
 
 data Pos a b c d e f = Pos a b c d e f
 start = Pos E E E E E E 
@@ -51,24 +42,24 @@ m6x = Pos E E E E E X
 
 class Empty a
 instance Empty E
-instance Empty e => Empty (M E e)
+instance Empty e => Empty (E++e)
 
 class Valid a
 instance Valid E
-instance Empty e => Valid (M X e)
-instance Empty e => Valid (M O e)
-instance Valid v => Valid (M E v)
+instance Empty e => Valid (X++e)
+instance Empty e => Valid (O++e)
+instance Valid v => Valid (E++v)
 
 class XMove a
-instance (Empty e) => XMove (M X e)
-instance (XMove x) => XMove (M E x)
+instance (Empty e) => XMove (X++e)
+instance (XMove x) => XMove (E++x)
 
 class Wins s w | s->w
 --instance (XMove a) => Wins (Pos a b c d e f)
-instance Wins (Pos (M X a) b c d e f) X
-instance Wins (Pos (M a' (M X a)) b c d e f) X
---instance Wins (Pos a (M X b) c d e f) X
---instance Wins (Pos a (M b' (M X b)) c d e f) X
+--instance Wins (Pos (X a) b c d e f) X
+--instance Wins (Pos (a' (X a)) b c d e f) X
+--instance Wins (Pos a (X b) c d e f) X
+--instance Wins (Pos a (b' (X b)) c d e f) X
 -- need this for draws
 -- instance (Valid a, b, c... etc) => Wins (Pos a b c d e f) Draw 
 
@@ -76,10 +67,10 @@ whoWon :: Wins a b => a -> b
 whoWon a = undefined 
 
 --(Wins (Pos as bs cs ds es fs)~False)) = 
---(Valid (M a as), Valid (M b bs), Valid (M c cs)) =>
-move :: (Valid (M a as)) => Pos a b c d e f -> Pos as bs cs ds es fs -> Pos (M a as) (M b bs) (M c cs) (M d ds) (M e es) (M f fs)
+move :: (Valid (a++as), Valid (b++bs), Valid (c++cs), Valid (d++ds), Valid (e++es),Valid (f++fs)) => Pos a b c d e f -> Pos as bs cs ds es fs -> Pos (a++as) (b++bs) (c++cs) (d++ds) (e++es) (f++fs)
 move m b = undefined 
 
+-- testing
 vm :: (Valid a) => a -> Bool
 vm _ = True
 
