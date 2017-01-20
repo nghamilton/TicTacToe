@@ -6,39 +6,35 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE FlexibleInstances #-}
-
+{-# LANGUAGE ConstraintKinds #-}
 --{-# LANGUAGE OverlappingInstances #-}
 --{-# LANGUAGE UndecidableInstances #-}
+--import GHC.TypeLits
+import Data.Type.Equality
 
-{-# LANGUAGE ConstraintKinds #-}
-import GHC.TypeLits
-
-
-class Done a b c d e f
-class XOccupied a
-instance XOccupied X
 data X = X 
 data O = O
 data E = E
 data Draw = Draw
 
---instance (XOccupied a, XOccupied b, XOccupied c) => Done a b c d e f
---instance (XOccupied d, XOccupied e, XOccupied f) => Done a b c d e f
-
-data m ++ ms = M m ms
-type (<>) x y = (x <=? y) ~ False
-
-instance Done (X++ms) (X++ms) (X++ms) a b c
-instance Done a b c (X++ms) (X++s) (X++s)  
-instance Done (O++ms) (O++ms) (O++ms) a b c
+-- todo need to add restriction in on previous player<>current player 
+data (++) m ms = M m ms
+type (<>) x y = (x == y) ~ False
 
 data Pos a b c d e f = Pos a b c d e f
-start = Pos E E E E E E 
-m1x = Pos X E E E E E 
-m2x = Pos E X E E E E 
-m3x = Pos E E X E E E 
-m4x = Pos E E E X E E 
-m6x = Pos E E E E E X
+nb s = (Pos E E E E E E,s)
+pos1 p = (Pos p E E E E E,p)
+pos2 p = (Pos E p E E E E,p)
+pos3 p = (Pos E E p E E E,p)
+pos4 p = (Pos E E E p E E,p)
+pos5 p = (Pos E E E E p E,p)
+pos6 p = (Pos E E E E E p,p)  
+
+{-- use type family?
+newBoard starter = case (starter) of
+  X -> nb
+  O -> nb 
+--}
 
 class Empty a
 instance Empty E
@@ -51,8 +47,13 @@ instance Empty e => Valid (O++e)
 instance Valid v => Valid (E++v)
 
 class XMove a
-instance (Empty e) => XMove (X++e)
+instance XMove (X++e)
 instance (XMove x) => XMove (E++x)
+
+class Done a b c d e f
+instance Done (X++ms) (X++ms) (X++ms) a b c
+instance Done a b c (X++ms) (X++s) (X++s)  
+instance Done (O++ms) (O++ms) (O++ms) a b c
 
 class Wins s w | s->w
 --instance (XMove a) => Wins (Pos a b c d e f)
@@ -67,16 +68,18 @@ whoWon :: Wins a b => a -> b
 whoWon a = undefined 
 
 --(Wins (Pos as bs cs ds es fs)~False)) = 
-move :: (Valid (a++as), Valid (b++bs), Valid (c++cs), Valid (d++ds), Valid (e++es),Valid (f++fs)) => Pos a b c d e f -> Pos as bs cs ds es fs -> Pos (a++as) (b++bs) (c++cs) (d++ds) (e++es) (f++fs)
+move :: (Valid (a++as), Valid (b++bs), Valid (c++cs), Valid (d++ds), Valid (e++es), Valid (f++fs), p'<>p) => ((Pos a b c d e f),p') -> ((Pos as bs cs ds es fs),p) -> (Pos (a++as) (b++bs) (c++cs) (d++ds) (e++es) (f++fs),p')
 move m b = undefined 
 
 -- testing
 vm :: (Valid a) => a -> Bool
 vm _ = True
 
-m1 = move m1x start 
-m2 = move m2x $ move m1x start
-m3 = move m3x $ move m2x $ move m1x start
+b1 = move (pos1 X) (nb O) 
+b2 = move (pos2 O) $ move (pos1 X) (nb O)
+b3 = move (pos3 X) $ move (pos2 O) $ move (pos1 X) (nb O)
 
 -- fails:
---mf = move m1x m1
+--mf = move pos1x pos1
+--mf2 = move (pos2 X) $ move (pos1 X) (nb O) 
+
