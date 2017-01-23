@@ -30,7 +30,6 @@ instance Result Draw
 infixr 5 ++ 
 data (++) m ms = M m ms deriving (Show)  
 type (<>) x y = (x == y) ~ False
---type Finished_ a b c d e f = (Finished a' b' c' d' e' f', Unwrap a a', Unwrap b b', Unwrap c c', Unwrap d d', Unwrap e e', Unwrap f f')
 
 class NoWin a b c
 instance NoWin X O X 
@@ -79,10 +78,8 @@ instance Unwrap (O++e) O where
 instance (Unwrap a b) => Unwrap (E++a) b where
   unwrap (M a as) = unwrap as 
 
-class Finished a b c d e f --where
---  whoWon :: (Result r) => a->b->c->d->e->f->r
-instance Finished X X X d e f --where
---  whoWon _ _ _ _ _ _ = X 
+class Finished a b c d e f
+instance Finished X X X d e f
 instance Finished a b c X X X 
 instance Finished O O O d e f
 instance Finished a b c O O O
@@ -96,76 +93,12 @@ whoWon x = whoWon' $ unwrapBoard x
 whoWon' :: Finished a b c d e f => Board a b c d e f -> Bool
 whoWon' a = True
 
-{-- 
-
-whoWon :: ((Finished a' b' c' d' e' f'), Unwrap a a', Unwrap b b', Unwrap c c', Unwrap d d', Unwrap e e', Unwrap f f') => (Board a b c d e f,p) -> Bool
-whoWon x = True
-
-Functional dependencies conflict between instance declarations:
-class Finished a b c d e f winner | a b c d e f -> winner where
-  winner::a->b->c->d->e->f->winner
---instance Finished X X X a b c X where 
---  winner _ _ _ _ _ _ = X 
---instance Finished a b c X X X X where 
---  winner _ _ _ _ _ _ = X 
---instance Finished O O O a b c O where 
---  winner _ _ _ _ _ _ = O 
---}
-
-
-{--type family Wins a b c d e f
-type instance Wins X X X d e f = X
-type instance Wins a b c O O O = O 
-
--- an o occupied type
-class O_ a
-instance O_ (O++e)
-instance (O_ o) => O_ (E++o)
---}
--- instance Finished a b c d e f Draw
---winner (unwrap (undefined :: (E++X++E)))  (unwrap (undefined :: (E++X++E))) (unwrap (undefined :: (E++X++E))) (unwrap (undefined :: (E++X++E))) (unwrap (undefined :: (E++X++E))) (unwrap (undefined :: (E++X++E)))
-
-{-- doesnt work - which is good
-winner (unwrap (undefined :: (E++O++E)))  (unwrap (undefined :: (E++O++E))) (unwrap (undefined :: (E++X++E))) (unwrap (undefined :: (E++X++E))) (unwrap (undefined :: (E++X++E))) (unwrap (undefined :: (E++O++E)))
-
-does work:
-
-winner (unwrap (undefined :: (E++O++E)))  (unwrap (undefined :: (E++O++E))) (unwrap (undefined :: (E++X++E))) (unwrap (undefined :: (E++X++E))) (unwrap (undefined :: (E++X++E))) (unwrap (undefined :: (E++O++E)))
-
---}
- 
---instance (Unwrap m1, Unwrap m2, Unwrap m3) => Finished m1 m2 m3 (a++as) (b++bs) (c++cs)
---instance (Unwrap m1, Unwrap m2, Unwrap m3) => Finished (a++as) (b++bs) (c++cs) m1 m2 m3
---instance Unwrap m1, Unwrap m2, Unwrap m3 => Finished (m1++X++ms1) (m2++X++ms2) (m3++X++ms3) a b c
-
---instance Es m1 ms1 m2 ms2 m3 ms3 => Finished (m1++X++ms1) (m2++X++ms2) (m3++X++ms3) a b c
---instance E3s ms1 ms2 ms3 => Finished (X++ms1) (X++ms2) (X++ms3) a b c
-
---instance (Empty a, Empty as) => Finished m1 m2 m3 (a++X++as) (X++bs) (X++cs)
---instance Xs w1 w2 w3 => Finished w1 w2 w3 (d++ds) (e++es) (f++fs)
---instance Xs w1 w2 w3 => Finished (a++as) (b++bs) (c++cs) w1 w2 w3 
---instance Os w1 w2 w3 => Finished w1 w2 w3 (d++ds) (e++es) (f++fs)
-
---instance (Unwrap d, Unwrap e, Unwrap f) => Finished a b c d e f 
---instance (Unwrap d, Unwrap e, Unwrap f) => Finished a b c (X++ms) (X++s) (X++s)  
---instance Finished (O++ms) (O++ms) (O++ms) a b c
-
---class Wins s w | s->w
---instance (XMove a) => Wins (Board a b c d e f)
---instance Wins (Board (X a) b c d e f) X
---instance Wins (Board (a' (X a)) b c d e f) X
---instance Wins (Board a (X b) c d e f) X
---instance Wins (Board a (b' (X b)) c d e f) X
--- need this for draws
--- instance (Valid a, b, c... etc) => Wins (Board a b c d e f) Draw 
-
---whoWon :: Wins a b => a -> b
---whoWon a = undefined 
---whoWon :: Finished a b c d e f => (Board a b c d e f,p) -> Bool 
---whoWon board@(Board a b c d e f,player) = winner $ (unwrap a) (unwrap b) (unwrap c) (unwrap d) (unwrap e) (unwrap f) 
-
 move :: (Valid (a++as), Valid (b++bs), Valid (c++cs), Valid (d++ds), Valid (e++es), Valid (f++fs), p'<>p) => (Board a b c d e f,p') -> (Board as bs cs ds es fs,p) -> (Board (a++as) (b++bs) (c++cs) (d++ds) (e++es) (f++fs),p')
 move move@(Board a b c d e f,p') board@(Board as bs cs ds es fs,p) = (Board (M a as) (M b bs) (M c cs) (M d ds) (M e es) (M f fs),p')
+
+
+
+
 
 -- testing
 vm :: (Valid a) => a -> Bool
