@@ -1,21 +1,23 @@
--- TESTING 
-b1 = move (pos1 X) (nb O)
-b2 = move (pos2 O) $ move (pos1 X) (nb O)
-b3 = move (pos3 X) $ move (pos2 O) $ move (pos1 X) (nb O)
+import TicTacToe
 
-x2win = move (pos5 O) $ move (pos2 X) $ move (pos6 O) $ move (pos1 X) (nb O)
-draw = move (pos3 O) $ move (pos4 X) $ move (pos5 O) $ move (pos2 X) $ move (pos6 O) b1
-xwon = move (pos3 X) $ x2win
+-- TESTING 
+b1 = move (p1 X) (new O)
+b2 = move (p2 O) $ move (p1 X) (new O)
+b3 = move (p3 X) $ move (p2 O) $ move (p1 X) (new O)
+
+x2win = move (p5 O) $ move (p2 X) $ move (p6 O) $ move (p1 X) (new O)
+draw = move (p7 X) $ move (p8 O) $ move (p9 X) $ move (p3 O) $ move (p6 X) $ move (p5 O) $ move (p2 X) $ move (p4 O) $ move (p1 X) (new O)
+xwon = move (p3 X) $ x2win
 
 -- fails:
---samePos = move (pos1 X) pos1
---samePlayer = move (pos2 X) $ move (pos1 X) (nb O) 
---afterFinished = move (pos4 O) $ xwon 
---afterDraw = move (pos1 X) $ draw 
+--samePos = move (p1 X) p1
+--samePlayer = move (p2 X) $ move (p1 X) (new O) 
+--afterFinished = move (p4 O) $ xwon 
+--afterDraw = move (p1 X) $ draw 
 
-whoWonT = whoWon xwon
+--whoWonT = whoWon xwon
 whoWonDrawt = whoWon draw
 
 -- fails:
---whoWonTF1 = whoWon (nb O)
+--whoWonTF1 = whoWon (new O)
 --whoWonTF2 = whoWon x2win
