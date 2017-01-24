@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FunctionalDependencies #-}
 
 module Constraints where
 
@@ -48,37 +49,55 @@ instance Winner a O c d O f g O i
 instance Winner a b O d e O g h O 
 instance Winner O b c d O f g h O 
 instance Winner a b O d O f O h i 
-
-instance {-# INCOHERENT #-} (a<>E,b<>E,c<>E,d<>E,e<>E,f<>E,g<>E,h<>E,i<>E) =>
+instance {-# OVERLAPPABLE #-} (a<>E,b<>E,c<>E,d<>E,e<>E,f<>E,g<>E,h<>E,i<>E) =>
   Winner a b c d e f g h i 
 
-type Win a b c = (a~b, b~c, a<>E)
+-- wanted this too, but doesn't work
+-- type Wins a b c d e f g h i r = (Res a b c r1, Res d e f r2, Res g h i r3, Res a e i r4, Res c e g r5, Res a d g r6, Res b e h r7, Res c f i r8, W r1 r2 r3 r4 r5 r6 r7 r8 r)
+type NoWins a b c d e f g h i = (Res a b c N, Res d e f N, Res g h i N, Res a e i N, Res c e g N, Res a d g N, Res c f i N)
 
-type NoWins a b c d e f g h i= (NoWin a b c, NoWin d e f, NoWin g h i, NoWin a e i, NoWin c e g, NoWin a d g, NoWin c f i)
-class NoWin a b c
-instance NoWin E E E
-instance NoWin E E X
-instance NoWin E E O
-instance NoWin E X E
-instance NoWin E X X
-instance NoWin E X O
-instance NoWin E O E
-instance NoWin E O X
-instance NoWin E O O
-instance NoWin X E E
-instance NoWin X E X
-instance NoWin X E O
-instance NoWin X X E
-instance NoWin X X O
-instance NoWin X O E
-instance NoWin X O X
-instance NoWin X O O
-instance NoWin O E E
-instance NoWin O E X
-instance NoWin O E O
-instance NoWin O X E
-instance NoWin O X X
-instance NoWin O X O
-instance NoWin O O E
-instance NoWin O O X
+-- calculate winner from all 8 possibly winning triplets
+class W a b c d e f g h wins | a b c d e f g h -> wins
+instance {-# OVERLAPPING #-} W N N N N N N N N N
+instance W w N N N N N N N w
+instance W N w N N N N N N w
+instance W N N w N N N N N w
+instance W N N N w N N N N w
+instance W N N N N w N N N w
+instance W N N N N N w N N w
+instance W N N N N N N w N w
 
+-- work out winner of a triplet, or nobody
+data N = N
+class Res a b c r | a b c -> r
+--NB: this is what I really meant:
+--instance a<>E => Win a a a a --for XXX,OOO
+--instance {-# OVERLAPPABLE #-} Win a b c N 
+
+instance Res X X X X 
+instance Res O O O O 
+instance Res E E E N
+instance Res E E X N
+instance Res E E O N
+instance Res E X E N
+instance Res E X X N
+instance Res E X O N
+instance Res E O E N
+instance Res E O X N
+instance Res E O O N
+instance Res X E E N
+instance Res X E X N
+instance Res X E O N
+instance Res X X E N
+instance Res X X O N
+instance Res X O E N
+instance Res X O X N
+instance Res X O O N
+instance Res O E E N
+instance Res O E X N
+instance Res O E O N
+instance Res O X E N
+instance Res O X X N
+instance Res O X O N
+instance Res O O E N
+instance Res O O X N

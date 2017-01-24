@@ -16,12 +16,17 @@ data (+>) m ms = (:+>) m ms deriving (Show)
 data X = X deriving (Show)
 data O = O deriving (Show)
 data E = E deriving (Show)
+
+{--
 data Draw = Draw deriving (Show)
 
 class Result a
 instance Result X
 instance Result O
 instance Result Draw
+--}
+
+data Result = XWon | OWon | Draw
 
 data Board a b c d e f g h i = Board a b c d e f g h i deriving (Show)
 new s = (Board E E E E E E E E E,s)
