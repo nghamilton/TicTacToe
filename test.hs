@@ -35,23 +35,11 @@ instance S E E X N
 t :: S a b c r => (a,b,c)->r
 t _ = undefined
 
--- calculate winner from all 8 possibly winning triplets
-class W a b c d e f g h wins | a b c d e f g h -> wins 
-instance {-# OVERLAPPING #-} W N N N N N N N N N
-instance W w N N N N N N N w
-instance W N w N N N N N N w
-instance W N N w N N N N N w
-instance W N N N w N N N N w
-instance W N N N N w N N N w
-instance W N N N N N w N N w
-instance W N N N N N N w N w
-instance W N N N N N N N w w
-
-
-w :: W a b c d e f g h r => (a,b,c,d,e,f,g,h)->r
-w _ = undefined
+--w :: Drawz a b c d e f g h i r => (a,b,c,d,e,f,g,h)->r
+--w _ = undefined
 
 --w :: NoWins a b c d e f g h i => (a,b,c,d,e,f,g,h,i)->Bool
 --w :: Wins a b c d e f g h i r => (a,b,c,d,e,f,g,h,i)->r
 --w _ = undefined
 
+data Z = Z

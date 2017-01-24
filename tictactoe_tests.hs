@@ -15,8 +15,8 @@ xwon = move (p3 X) $ x2win
 --afterFinished = move (p4 O) $ xwon 
 --afterDraw = move (p1 X) $ draw 
 
---whoWonT = whoWon xwon
---whoWonDrawt = whoWon draw
+whoWonT = whoWon xwon
+whoWonDrawt = whoWon draw
 
 -- fails:
 --whoWonTF1 = whoWon (new O)
