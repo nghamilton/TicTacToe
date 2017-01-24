@@ -1,199 +1,115 @@
-{-# LANGUAGE EmptyDataDecls, MultiParamTypeClasses, FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE EmptyDataDecls #-}
 
-import Data.Array
-import Control.Monad
+import Data.Type.Equality
+import GHC.Exts
 
-type Magic = Int
-data Player = Empty | X | O | Draw
-  deriving (Show,Eq)
-type Move = Int
-type MovePlayer = (Move,Player) 
-
-type Pos = (Int,Int)
-type Play = (Magic,Player)
-type BState = Array Pos Play 
-type PosState = (Pos,Play)
-
-data BoardS a = Unplayable 
-           | Playable {state :: BState}
-           | XWon {state :: BState}
-           | OWon {state :: BState}
-           | Drawed {state :: BState}
-  deriving (Show,Eq)
-
-type NBoard = BoardS Player
-
--- wrapper to hold moves
-data NB s = NewBoard s Player
-data B s m = M s Move m
-
--- board state
-class State p
-instance State P
-instance State U 
-data P = PlayableBoard
-data U = UnplayableBoard
-
--- all boards
-class Board_ b where 
-  extractMoves :: b -> [Int] 
-  extractState :: (State s) =>b -> s 
-  firstPlayer:: b -> Player 
-  secondPlayer:: b -> Player 
-  secondPlayer b = case (firstPlayer b) of
-                     X -> O
-                     O -> X
-
-instance (State s)=>Board_ NB s where
-  extractMoves b = [] 
-  firstPlayer (NewBoard _ p) = p 
-  extractState (NewBoard s _) = PlayableBoard 
-
-instance Board_ b => Board_ (B s b) where
-  extractMoves (M _ m ms) = (extractMoves ms)++[m]
-  firstPlayer (M _ m ms)  = firstPlayer ms 
-  extractState (M s m ms) = PlayableBoard 
-
--- valid boards
-class Board_ b=>ValidBoard b
-instance ValidBoard NB 
-instance ValidBoard (B P NB) 
-instance ValidBoard (B P (B P NB)) 
-instance ValidBoard (B P (B P (B P NB))) 
-{--instance ValidBoard (B P (B (B (B NB)))) 
-instance ValidBoard (B P (B (B (B (B NB))))) 
-instance ValidBoard (B P (B (B (B (B (B NB)))))) 
-instance ValidBoard (B P (B (B (B (B (B (B NB))))))) 
-instance ValidBoard (B P (B (B (B (B (B (B (B NB)))))))) 
---}
- 
-move :: (ValidBoard b, State s) => Move -> b -> B s b
-move m b = M (extractState b) m b
-
---Calling on a game board that is empty or in-play is a compile-time type error
---not in class EmptyBoard or PlayingBoard
-whoWon :: Board_ b=>b->Player
-whoWon b
-  | won p1 = firstPlayer b 
-  | won p2 = secondPlayer b
-  | otherwise = Draw
-    where
-      won l = elem 15 $ [ x+y+z | x<-l, y<-l, z<-l,x/=y&&y/=z ] 
-      (p1,p2) = splitMoves moves 
-      moves = map (\x->[8,1,6,3,5,7,4,9,2]!!(x-1)) $ extractMoves b
-
--- split up the move list into two sets of moves (for each player)
-splitMoves :: [Int] -> ([Int],[Int]) 
-splitMoves = foldl split ([],[]) where
-  split (p1,p2) m = if (length p1<=length p2) 
-                      then (m:p1,p2)
-                      else (p1,m:p2)
-
-{--
--- a unique type for each position
-data P1
--- an InvalidBoard class that includes any Board with two of the same positions
-class InvalidBoard
--- a ValidBoard class that inludes any board with 1-9 moves
-class ValidBoard
--- so a type of P3 (P3 (P1 x)) is invalid
--- ... but (P2 (P1 (P4 x))) is valid
--- .. except this isn't possible to return different types, so ...
-
---the move function takes anything from the ValidBoard class
---and returns (a function that takes an int and returns a function 
-
--- i.e move -> pos -> board -> board
--- => apply pos to board, then move just returns the same board
--- ... has to be done this way to create an 'invalid' board that wont typecheck
+{-- Todo:
+* export only appropriate functions
+* unit tests
+* fix NoWin boilerplate
+* implement remaining challenge questions
 --}
 
-maxsize = 3
-empty = (0,Empty)
-validMoves = [1..maxsize]
+data X = X deriving (Show) 
+data O = O deriving (Show) 
+data E = E deriving (Show)  
+data Draw = Draw deriving (Show)  
 
-{-- 
-instance Monad Board where
-  return p = newBoard 
-  b >>= f = undefined 
+class Result a
+instance Result X
+instance Result O
+instance Result Draw 
 
-move m b = b >>= (validPlay m) >>= wins 
---doPlay takes a move and a board, gives a Unplayable or Playable
---checkWin takes a board and gives a Playable or Finished 
---board context records who started the play (therefore only need list of places)
---}
- 
---given a position and a board, return a new board
-moveS :: MovePlayer -> NBoard -> NBoard
-moveS m b@(Playable a) = checkWin (doPlay m b)
+infixr 5 +> 
+data (+>) m ms = (:+>) m ms deriving (Show)  
+type (<>) x y = (x == y) ~ False
 
-doPlay :: MovePlayer -> NBoard -> NBoard 
-doPlay (m,p) b@(Playable s) = case (playerAt s pos) of
-  Empty -> Playable $ s // [(pos,(magicLookup m,p))]
-  _     -> Unplayable
-  where
-    pos = posLookup m 
+type Win a b c = (a~b, b~c, a<>E)
+type NoWins a b c d e f = (NoWin a b c, NoWin d e f) 
+type ValidMerge a b c d e f as bs cs ds es fs = (Valid (a+>as), Valid (b+>bs), Valid (c+>cs), Valid (d+>ds), Valid (e+>es), Valid (f+>fs))
+type ValidPlayer p p' = p'<>p 
+type Finished a b c d e f = (Winner a b c d e f)
 
-checkWin :: NBoard -> NBoard
-checkWin b@(Playable s)
-  | length (moves b) == (maxsize^2) = Drawed s 
-  | otherwise = case (whoWon' s) of
-      Just X -> XWon s
-      Just O -> OWon s
-      Nothing -> b 
+class NoWin a b c
+instance NoWin E E E 
+instance NoWin E E X 
+instance NoWin E E O 
+instance NoWin E X E 
+instance NoWin E X X 
+instance NoWin E X O 
+instance NoWin E O E 
+instance NoWin E O X 
+instance NoWin E O O 
+instance NoWin X E E 
+instance NoWin X E X 
+instance NoWin X E O 
+instance NoWin X X E 
+instance NoWin X X O 
+instance NoWin X O E 
+instance NoWin X O X 
+instance NoWin X O O 
 
-moves :: NBoard -> [Play]
-moves = (filter (\(x,_)->x>0)).elems.state
+data Board a b c d e f = Board a b c d e f deriving (Show)
+nb s = (Board E E E E E E,s)
+pos1 p = (Board p E E E E E,p)
+pos2 p = (Board E p E E E E,p)
+pos3 p = (Board E E p E E E,p)
+pos4 p = (Board E E E p E E,p)
+pos5 p = (Board E E E E p E,p)
+pos6 p = (Board E E E E E p,p)  
 
-playerAt :: BState -> Pos -> Player
-playerAt s p  = snd $ s!p 
+-- an empty move 
+class Empty a
+instance Empty E
+instance Empty e => Empty (E+>e)
 
---newBoard :: NBoard
-newBoard = Playable $ newState [((x,y),empty) | x<-[1..maxsize], y<-[1..maxsize]]
+-- an valid move - only empty moves before and after
+class Valid a
+instance Valid E
+instance Empty e => Valid (X+>e)
+instance Empty e => Valid (O+>e)
+instance Valid v => Valid (E+>v)
 
-newState :: [PosState]->BState
-newState s = array ((1,1),(maxsize,maxsize)) s 
+-- Unwrap the list of moves 
+class Unwrap a x | a -> x where
+  unwrap :: a -> x
+instance Unwrap E E where 
+  unwrap _ = E 
+instance Unwrap (X+>e) X where 
+  unwrap _ = X
+instance Unwrap (O+>e) O where 
+  unwrap _ = O
+instance (Unwrap a b) => Unwrap (E+>a) b where
+  unwrap (a:+>as) = unwrap as 
 
-posLookup :: Move -> Pos
-posLookup i = indices (newState [])!!(i-1)
+class Winner a b c d e f
+instance Winner X X X d e f
+instance Winner a b c X X X 
+instance Winner O O O d e f
+instance Winner a b c O O O
+instance {-# OVERLAPPABLE #-} (a<>E,b<>E,c<>E,d<>E,e<>E,f<>E) =>
+  Finished a b c d e f
 
-magicLookup:: Move -> Magic 
-magicLookup i = [8,1,6,3,5,7,4,9,2]!!(i-1)
+unwrapBoard
+  :: (Unwrap a6 f, Unwrap a5 e, Unwrap a4 d, Unwrap a3 c,
+      Unwrap a2 b, Unwrap a1 a) =>
+     (Board a1 a2 a3 a4 a5 a6, t) -> Board a b c d e f
+unwrapBoard ((Board a b c d e f),p) = Board (unwrap a) (unwrap b) (unwrap c) (unwrap d) (unwrap e) (unwrap f)
 
---reduce this down
-whoWon' :: BState -> Maybe Player
-whoWon' s 
-  | won (plays X) = Just X 
-  | won (plays O) = Just O 
-  | otherwise = Nothing where
--- put in do notation, use an Alternative guard?
-    won = elem 15 . map sum . filter (\x->3==length x) . filterM (\x -> [True, False]) 
-    plays x = map fst $ filter (\a->x==snd a) $ elems s
+whoWon :: (Finished a' b' c' d' e' f', Unwrap a a', Unwrap b b', Unwrap c c', Unwrap d d', Unwrap e e', Unwrap f f') => (Board a b c d e f,p) -> Bool
+whoWon x = whoWon' $ unwrapBoard x 
 
---hasWon :: BState -> Maybe Player
-{--hasWon s = if (null winners)
-  then Nothing
-  else Just winners --Just $ head $ head winners
-  where
-    winners = filter winner plays
-    winner [(Player x),(Player x'),(Player x'')] = x==x'&&x'==x''
-    winner _ = False
-    plays = map convert winningCombos 
-    convert = map ((playerAt s).posLookup)
+whoWon' :: Finished a b c d e f => Board a b c d e f -> Bool
+whoWon' a = True
 
-
-winningCombos = [[1,2,3],[4,5,6],[7,8,9],[1,4,7],[2,5,8],[3,6,9],[1,5,9],[3,5,7]]
---} 
-
---finishedT =  move (7,X) $ move (5,O) $ move (4,X) $ move (2,O) $ move (1,X) newBoard
---drawedT = move (1,O) $ move (7,X) $ move (3,O) $ move (4,X) $ move (6,O) $ move (2,X) $ move (8,O) $ move (9,X) $ move (5,O) newBoard 
---invalidPlayT = move (5,X) $ move (5,O) newBoard
-
-
---finishedT =  move 7 $ move 5 $ move 4 $ move 2 $ move 1 NewBoard
---finishedT =  move 1 $ move 7 $ move 3 $ move 4 $ move 6 $ move 2 $ move 8 $ move 9 $ move 5 $ NewBoard X 
---badT = move 10 $ move 1 $ move 7 $ move 3 $ move 4 $ move 6 $ move 2 $ move 8 $ move 9 $ move 5 $ NewBoard X 
-
---xWonBoardT =  M 7 $ M 5 $ M 4 $ M 2 $ M 1 $ NewBoard X 
---yWonBoardT =  M 7 $ M 5 $ M 4 $ M 2 $ M 1 $ M 3 $ NewBoard X 
---drawBoardT =  M 1 $ M 7 $ M 3 $ M 4 $ M 6 $ M 2 $ M 8 $ M 9 $ M 5 $ NewBoard X 
+move :: (ValidMerge a b c d e f as bs cs ds es fs, ValidPlayer p p', NoWins a' b' c' d' e' f', Unwrap as a', Unwrap bs b', Unwrap cs c', Unwrap ds d', Unwrap es e', Unwrap fs f') => (Board a b c d e f,p') -> (Board as bs cs ds es fs,p) -> (Board (a+>as) (b+>bs) (c+>cs) (d+>ds) (e+>es) (f+>fs),p')
+move move@(Board a b c d e f,p') board@(Board as bs cs ds es fs,p) = (board',p') where
+ board' = Board (a:+>as) (b:+>bs) (c:+>cs) (d:+>ds) (e:+>es) (f:+>fs)
