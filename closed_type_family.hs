@@ -27,23 +27,26 @@ Or False (Int==Int) :: Bool
 = 'True
 --}
 
+-- Calculate any winners from all triplet combos, then check if any winners are not N (i.e. not a nobody)
+type family Winner a b c d e f g h i where
+  Winner a b c d e f g h i = W (Res a b c) (Res d e f) (Res g h i) (Res a e i) (Res c e g) (Res a d g) (Res b e h) (Res c f i) 
+
+type family W a b c d e f g h where
+  W N N N N N N N N = N
+  W w N N N N N N N = w
+  W N w N N N N N N = w
+  W N N w N N N N N = w
+  W N N N w N N N N = w
+  W N N N N w N N N = w
+  W N N N N N w N N = w
+  W N N N N N N w N = w
+
 type family Res a b c where
   Res X X X = X
   Res O O O = O
   Res a b c = N
 
---class W a b c wins | a b c -> wins
---instance W N N N N
---instance W X X X X
 
-type family T a b c d e f where
-  T a b c d e f = W (Res a b c) (Res b c d) 
-
-type family W a b where
-  W N N = N 
-  W N a = a
-  W a N = a
- 
 --f :: W a b c d => (a,b,c)->d
 --f _ = undefined
 --type family W a b c d e f where
