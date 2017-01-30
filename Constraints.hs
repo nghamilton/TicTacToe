@@ -65,40 +65,12 @@ instance Result N where
 
 -- work out winner of a triplet, or nobody
 data N = N
-class Res a b c r | a b c -> r
---NB: this is what I really meant:
---instance a<>E => Win a a a a --for XXX,OOO
---instance {-# OVERLAPPABLE #-} Win a b c N 
+type family Res a b c where
+  Res X X X = X
+  Res O O O = O
+  Res a b c = N
 
 -- delete from here down and replace with something smart
-instance Res X X X X 
-instance Res O O O O 
-instance Res E E E N
-instance Res E E X N
-instance Res E E O N
-instance Res E X E N
-instance Res E X X N
-instance Res E X O N
-instance Res E O E N
-instance Res E O X N
-instance Res E O O N
-instance Res X E E N
-instance Res X E X N
-instance Res X E O N
-instance Res X X E N
-instance Res X X O N
-instance Res X O E N
-instance Res X O X N
-instance Res X O O N
-instance Res O E E N
-instance Res O E X N
-instance Res O E O N
-instance Res O X E N
-instance Res O X X N
-instance Res O X O N
-instance Res O O E N
-instance Res O O X N
-
 -- this is only still needed to determine a draw
 class Winner a b c d e f g h i
 instance Winner X X X d e f g h i  
