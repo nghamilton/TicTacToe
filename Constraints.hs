@@ -14,46 +14,23 @@ module Constraints where
 import Board
 import GHC.Exts 
 import Data.Type.Equality
+import Data.Type.Bool
 
 type (<>) x y = (x == y) ~ False
 
 -- Constraints for simplification
 type IsValidMerge a b c d e f g h i as bs cs ds es fs gs hs is = (Valid (a+>as), Valid (b+>bs), Valid (c+>cs), Valid (d+>ds), Valid (e+>es), Valid (f+>fs), Valid (g+>gs), Valid (h+>hs), Valid (i+>is))
 type IsValidPlayer p p' = p'<>p
-type HasNoWins a b c d e f g h i = ((Winner a b c d e f g h i)==N) ~True
-type HasWins a b c d e f g h i = (Winner a b c d e f g h i)<>N
+type HasNoWins a b c d e f g h i = ( Winner a b c d e f g h i == N )~True
+type HasWins a b c d e f g h i = Winner a b c d e f g h i <> N
+type HasWinsOrDraw a b c d e f g h i = ( (Draws a b c d e f g h i) || (Winner a b c d e f g h i == X) || (Winner a b c d e f g h i == O) ) ~ True
+
+-- Only a draw if no empty spots left
+type family Draws a b c d e f g h i where
+  Draws a b c d e f g h i = Not ((a==E) || (b==E) || (c==E) || (d==E) || (e==E) || (f==E) || (g==E) || (h==E) || (i==E)) 
 
 -- non-result (i.e no win)
 data N = N
-
--- an empty move 
-class Empty a
-instance Empty E
-instance Empty e => Empty (E+>e)
-
--- an valid move - only empty moves before and after
-class Valid a
-instance Valid E
-instance Empty e => Valid (X+>e)
-instance Empty e => Valid (O+>e)
-instance Valid v => Valid (E+>v)
-
--- something like this would have made life a lot easier .. but results in fundep conflicts, of course
---data NoDraw
---class Drawz a b c d e f g h i result | a b c d e f g h i -> result
---instance (a<>E,b<>E,c<>E,d<>E,e<>E,f<>E,g<>E,h<>E,i<>E) => Drawz a b c d e f g h i Draw 
---instance Drawz a b c d e f g h i NoDraw 
--- .. and then use something like this:
--- ... Draw a b c d e f g h i draw, DrawOrWin draw win result => (Board as bs cs ds es fs gs hs is, p) -> result
-
-class Result a where
-  get :: a
-instance Result X where
-  get = X
-instance Result O where
-  get = O 
-instance Result N where
-  get = N 
 
 -- Calculate any winners from all triplet combos, then check if any winners are not N (i.e. not a nobody)
 type family Winner a b c d e f g h i where
@@ -76,3 +53,23 @@ type family Res a b c where
   Res O O O = O
   Res a b c = N
 
+-- an empty move 
+class Empty a
+instance Empty E
+instance Empty e => Empty (E+>e)
+
+-- an valid move - only empty moves before and after
+class Valid a
+instance Valid E
+instance Empty e => Valid (X+>e)
+instance Empty e => Valid (O+>e)
+instance Valid v => Valid (E+>v)
+
+class Result a where
+  get :: a
+instance Result X where
+  get = X
+instance Result O where
+  get = O 
+instance Result N where
+  get = N 

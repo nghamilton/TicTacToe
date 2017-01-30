@@ -31,6 +31,7 @@ Or False (Int==Int) :: Bool
 type family Winner a b c d e f g h i where
   Winner a b c d e f g h i = W (Res a b c) (Res d e f) (Res g h i) (Res a e i) (Res c e g) (Res a d g) (Res b e h) (Res c f i) 
 
+-- Check if any \= N - ie whether anybody has won
 type family W a b c d e f g h where
   W N N N N N N N N = N
   W w N N N N N N N = w
@@ -41,6 +42,7 @@ type family W a b c d e f g h where
   W N N N N N w N N = w
   W N N N N N N w N = w
 
+-- work out winner of a triplet, or nobody
 type family Res a b c where
   Res X X X = X
   Res O O O = O
