@@ -18,10 +18,10 @@ import Data.Type.Equality
 type (<>) x y = (x == y) ~ False
 
 -- Constraints for simplification
-type ValidMerge a b c d e f g h i as bs cs ds es fs gs hs is = (Valid (a+>as), Valid (b+>bs), Valid (c+>cs), Valid (d+>ds), Valid (e+>es), Valid (f+>fs), Valid (g+>gs), Valid (h+>hs), Valid (i+>is))
-type ValidPlayer p p' = p'<>p
-type NoWins a b c d e f g h i = (Winner a b c d e f g h i)==N 
-type Wins a b c d e f g h i = (Winner a b c d e f g h i)<>N
+type IsValidMerge a b c d e f g h i as bs cs ds es fs gs hs is = (Valid (a+>as), Valid (b+>bs), Valid (c+>cs), Valid (d+>ds), Valid (e+>es), Valid (f+>fs), Valid (g+>gs), Valid (h+>hs), Valid (i+>is))
+type IsValidPlayer p p' = p'<>p
+type HasNoWins a b c d e f g h i = ((Winner a b c d e f g h i)==N) ~True
+type HasWins a b c d e f g h i = (Winner a b c d e f g h i)<>N
 
 -- non-result (i.e no win)
 data N = N
