@@ -33,6 +33,7 @@ type family Draws a b c d e f g h i where
 data N = N
 
 -- Calculate any winners from all triplet combos, then check if any winners are not N (i.e. not a nobody)
+-- (nested instances allowed through UndecidableInstances) 
 type family Winner a b c d e f g h i where
   Winner a b c d e f g h i = W (Res a b c) (Res d e f) (Res g h i) (Res a e i) (Res c e g) (Res a d g) (Res b e h) (Res c f i)
 
